@@ -48,8 +48,7 @@ class RawYoutubePlayer extends StatefulWidget {
   _MobileYoutubePlayerState createState() => _MobileYoutubePlayerState();
 }
 
-class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
-    with WidgetsBindingObserver {
+class _MobileYoutubePlayerState extends State<RawYoutubePlayer> with WidgetsBindingObserver {
   YoutubePlayerController controller;
   Completer<InAppWebViewController> _webController;
   PlayerState _cachedPlayerState;
@@ -74,8 +73,7 @@ class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
       case AppLifecycleState.resumed:
-        if (_cachedPlayerState != null &&
-            _cachedPlayerState == PlayerState.playing) {
+        if (_cachedPlayerState != null && _cachedPlayerState == PlayerState.playing) {
           controller?.play();
         }
         break;
@@ -95,9 +93,7 @@ class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
       key: ValueKey(controller.hashCode),
       initialData: InAppWebViewInitialData(
         data: player,
-        baseUrl: controller.params.privacyEnhanced
-            ? 'https://www.youtube-nocookie.com'
-            : 'https://www.youtube.com',
+        baseUrl: Uri.parse(controller.params.privacyEnhanced ? 'https://www.youtube-nocookie.com' : 'https://www.youtube.com'),
         encoding: 'utf-8',
         mimeType: 'text/html',
       ),
@@ -129,14 +125,14 @@ class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
         android: AndroidInAppWebViewOptions(useWideViewPort: false),
       ),
       shouldOverrideUrlLoading: (_, detail) async {
-        final uri = Uri.parse(detail.url);
+        final uri = detail.request.url;
         final feature = uri.queryParameters['feature'];
         if (feature == 'emb_rel_pause') {
           controller.load(uri.queryParameters['v']);
         } else {
-          url_launcher.launch(detail.url);
+          url_launcher.launch(detail.request.url.toString());
         }
-        return ShouldOverrideUrlLoadingAction.CANCEL;
+        return NavigationActionPolicy.CANCEL;
       },
       onWebViewCreated: (webController) {
         if (!_webController.isCompleted) {
@@ -214,8 +210,7 @@ class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
             handlerName: 'PlaybackQualityChange',
             callback: (args) {
               controller.add(
-                controller.value
-                    .copyWith(playbackQuality: args.first as String),
+                controller.value.copyWith(playbackQuality: args.first as String),
               );
             },
           )
@@ -240,8 +235,7 @@ class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
             handlerName: 'VideoData',
             callback: (args) {
               controller.add(
-                controller.value.copyWith(
-                    metaData: YoutubeMetaData.fromRawData(args.first)),
+                controller.value.copyWith(metaData: YoutubeMetaData.fromRawData(args.first)),
               );
             },
           )
@@ -338,7 +332,5 @@ class _MobileYoutubePlayerState extends State<RawYoutubePlayer>
     </body>
   ''';
 
-  String get userAgent => controller.params.desktopMode
-      ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36'
-      : null;
+  String get userAgent => controller.params.desktopMode ? 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36' : null;
 }
